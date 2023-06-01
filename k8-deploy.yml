@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  labels:
+    app: payment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+      - name: payment
+        image: 834725375088.dkr.ecr.us-east-1.amazonaws.com/payment:8.0.4
+        ports:
+        - containerPort: 8080
+        envFrom:
+          - configMapRef:
+              name: payment-configmap
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-svc
+spec:
+  selector:
+   app: payment
+  ports:
+    - protocol: TCP
+      port: 8080              # Port number of the service that it has to listen on 
+      targetPort: 8080        # Port number of the container that it has to forward to
+
+--- 
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-configmap
+data:
+  CART_HOST: "cart-svc"  
+  USER_HOST: "user-svc"
+  AMQP_HOST: "amqp-ip-address" 
+  AMQP_USER: "roboshop"
+  AMQP_PASS: "roboshop123"
